@@ -523,12 +523,24 @@
     try {
       const res = await fetch(WEBHOOK, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        mode: 'cors',
         body: JSON.stringify({ message: text })
       });
-      const data = await res.json();
+      if (!res.ok) throw new Error('Network response was not ok');
+      const textResponse = await res.text();
       hideTyping();
-      addMessage(data.reply || "Sorry, I couldn't get a response. Please try again!", 'bot');
+      let reply;
+      try {
+        const data = JSON.parse(textResponse);
+        reply = data.reply || data.message || textResponse;
+      } catch {
+        reply = textResponse;
+      }
+      addMessage(reply || "Sorry, I couldn't get a response. Please try again!", 'bot');
     } catch (err) {
       hideTyping();
       addMessage("⚠️ Connection error. Please check your internet and try again.", 'bot');
